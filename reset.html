@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Choose a new password · Homefed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Lora:wght@500&display=swap">
+<style>
+  :root { --paper: #EDE6D6; --page: #F7F4EC; --ink: #2B2622; --green: #4F8F52; --terracotta: #C2613D; }
+  * { box-sizing: border-box; }
+  html { background: var(--page); }
+  body { margin: 0; background: var(--page); color: var(--ink); font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; line-height: 1.65; }
+  .wrap { width: 100%; max-width: 680px; margin: 0 auto; padding: 0 20px; }
+  header { padding: 24px 0 8px; }
+  header a { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-family: Lora, Georgia, "Times New Roman", serif; font-weight: 500; font-size: 20px; }
+  header svg { width: 32px; height: 32px; }
+  main { padding: 16px 0 40px; }
+  h1 { margin: 16px 0 24px; font-family: Lora, Georgia, "Times New Roman", serif; font-weight: 500; font-size: 32px; line-height: 1.2; }
+  p { margin: 0 0 12px; }
+  a { color: var(--green); }
+  [hidden] { display: none !important; }
+  form { max-width: 360px; }
+  label { display: block; margin: 0 0 4px; font-size: 14px; font-weight: 500; }
+  input { display: block; width: 100%; margin: 0 0 16px; padding: 12px 14px; border: 1px solid rgba(43, 38, 34, 0.25); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; }
+  input:focus { outline: 2px solid var(--green); outline-offset: 1px; border-color: var(--green); }
+  button { padding: 12px 28px; border: 0; border-radius: 999px; background: var(--green); color: #fff; font: inherit; font-weight: 500; cursor: pointer; }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .say { margin-top: 16px; }
+  footer { border-top: 1px solid rgba(43, 38, 34, 0.12); padding: 20px 0 32px; font-size: 14px; }
+  footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(43, 38, 34, 0.25); }
+  footer a:hover { color: var(--green); border-color: var(--green); }
+  .dot { color: rgba(43, 38, 34, 0.45); padding: 0 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a href="index.html">
+    <svg viewBox="0 0 180 180" aria-hidden="true">
+      <rect width="180" height="180" rx="40" fill="#EDE6D6"/>
+      <text x="84" y="128" text-anchor="middle" font-family="Lora, Georgia, 'Times New Roman', serif" font-weight="500" font-size="124" fill="#4F8F52">h</text>
+      <circle cx="138" cy="118" r="11" fill="#C2613D"/>
+    </svg>
+    homefed
+  </a>
+</header>
+<main>
+  <!-- One of three things shows, never two: the form, the "done" line, or one calm sentence. -->
+  <section id="choose" hidden>
+    <h1>Choose a new password</h1>
+    <form id="form" novalidate>
+      <label for="pw1">New password</label>
+      <input id="pw1" type="password" autocomplete="new-password" required>
+      <label for="pw2">Again</label>
+      <input id="pw2" type="password" autocomplete="new-password" required>
+      <button id="save" type="submit">Save</button>
+    </form>
+    <p class="say" id="hint" role="status" hidden></p>
+  </section>
+  <p id="said" role="status" hidden></p>
+  <noscript><p>Open this page from the link in your email.</p></noscript>
+</main>
+<footer>
+  <a href="index.html">Home</a><span class="dot">·</span><a href="privacy.html">Privacy</a><span class="dot">·</span><a href="support.html">Support</a><span class="dot">·</span><a href="mailto:support@homefed.in">support@homefed.in</a>
+</footer>
+</div>
+<!-- supabase-js 2.110.0 — the same version the app ships — pinned, with its hash. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.0/dist/umd/supabase.js" integrity="sha384-3wY11tldQ5+yWqAvmTN4XtQvnjoTva0cV15O/O/O5NTtp0ivVopSzLOzsVXWZse9" crossorigin="anonymous"></script>
+<script>
+(function () {
+  // The live project — the same two values as the app's EAS variables. The anon key is public by
+  // design: it ships in every install.
+  var SUPABASE_URL = 'https://ckjwoofrvwznaljhydws.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNrandvb2Zydnd6bmFsamh5ZHdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDMyMzEsImV4cCI6MjA5NjAxOTIzMX0.PLpmqzzeVGjZUInl7xH3fUuz-Y6OkehqgHhwYao-vrM';
+
+  var NO_LINK = 'Open this page from the link in your email.';
+  var EXPIRED = "That link has expired. Write to support@homefed.in and we'll send a new one.";
+  var DONE = 'Done. Open Homefed and sign in with your new password.';
+
+  var hash = new URLSearchParams(location.hash.slice(1));
+  var query = new URLSearchParams(location.search);
+  var code = query.get('code');                                       // PKCE
+  var tokenHash = query.get('token_hash');                            // a template that sends the hash
+  var implicit = hash.get('access_token') && hash.get('type') === 'recovery';
+  var refused = hash.get('error') || hash.get('error_code') || query.get('error') || query.get('error_code');
+
+  var $ = function (id) { return document.getElementById(id); };
+  function say(line) {
+    $('choose').hidden = true;
+    $('said').textContent = line;
+    $('said').hidden = false;
+  }
+  function hint(line) {
+    $('hint').textContent = line;
+    $('hint').hidden = !line;
+  }
+  function choose() {
+    $('said').hidden = true;
+    $('choose').hidden = false;
+    $('pw1').focus();
+  }
+  // The token has done its job once the session is up; it should not sit in the address bar,
+  // in history, or in a screenshot.
+  function forget() { history.replaceState(null, '', location.pathname); }
+
+  if (!implicit && !code && !tokenHash && !refused) { say(NO_LINK); return; }
+  if (refused || !window.supabase || SUPABASE_URL.indexOf('PASTE_') === 0) { forget(); say(EXPIRED); return; }
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      flowType: code ? 'pkce' : 'implicit',
+      detectSessionInUrl: !!implicit,  // the implicit hash is read by the client; the other two by hand
+      persistSession: false,           // the session lives in this tab only, and only until Save
+      autoRefreshToken: false
+    }
+  });
+
+  var shown = false;
+  function ready() { if (!shown) { shown = true; forget(); choose(); } }
+
+  sb.auth.onAuthStateChange(function (event) {
+    if (event === 'PASSWORD_RECOVERY') ready();
+  });
+
+  var establish = implicit
+    // getSession waits for the client to read the hash; PASSWORD_RECOVERY usually shows the form
+    // first, and this shows it if the event came before the listener did.
+    ? sb.auth.getSession().then(function (r) { if (r.error || !r.data.session) throw r.error || 0; ready(); })
+    : (code
+        ? sb.auth.exchangeCodeForSession(code)
+        : sb.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+      ).then(function (r) { if (r.error || !r.data.session) throw r.error || 0; ready(); });
+
+  establish.catch(function () { forget(); say(EXPIRED); });
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var a = $('pw1').value, b = $('pw2').value;
+    if (a.length < 6) { hint('Make it at least 6 characters.'); return; }
+    if (a !== b) { hint("The two don't match. Type the same password in both."); return; }
+    hint('');
+    $('save').disabled = true;
+    sb.auth.updateUser({ password: a }).then(function (r) {
+      if (!r.error) {
+        say(DONE);
+        return sb.auth.signOut({ scope: 'local' });
+      }
+      // A password the person can change here is not an expired link.
+      var why = r.error.code;
+      if (why === 'same_password') { hint("That's the password you have now. Choose a different one."); }
+      else if (why === 'weak_password') { hint('That one is too easy to guess. Choose a longer one.'); }
+      else { say(EXPIRED); return; }
+      $('save').disabled = false;
+    }, function () { say(EXPIRED); });
+  });
+})();
+</script>
+</body>
+</html>

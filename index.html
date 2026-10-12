@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homefed</title>
+<script>
+  // A recovery email lands here, on the Site URL; the password changes on /reset. Keep the token.
+  if (/(^#|&)(type=recovery|error_code=)/.test(location.hash) || /[?&](code|token_hash)=/.test(location.search)) location.replace('/reset' + location.search + location.hash);
+</script>
 <meta name="description" content="Your household's kitchen, on every phone in the house.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
